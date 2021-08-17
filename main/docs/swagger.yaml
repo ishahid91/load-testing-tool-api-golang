@@ -1,0 +1,35 @@
+basePath: /
+host: localhost:80
+info:
+  contact:
+    email: soberkoder@swagger.io
+    name: API Support
+  description: Load Test tool
+  license:
+    name: Apache 2.0
+    url: http://www.apache.org/licenses/LICENSE-2.0.html
+  termsOfService: http://swagger.io/terms/
+  title: Load Test API
+  version: "1.0"
+paths:
+  /runloadtest:
+    post:
+      consumes:
+      - application/json
+      description: Run Load Test on specified Url
+      parameters:
+      - description: Request Model
+        in: body
+        name: request
+        required: true
+        schema:
+          type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: string
+      summary: Run Load Test on specified Url
+swagger: "2.0"
