@@ -14,14 +14,14 @@ API Json Body
     "rampUpTimeInSeconds": 2,
     "httpRequest": {
         "method":"GET",
-        "url":"https://nexus.talabat.com/health",
+        "url":"https://api.test.com/health",
         "headers": {
             "Content-Type": "application/json"
         },
 	"queryParams":{
             "param_key":"param_value
         },
-	"body": {"json":"value"}
+	"body": {"key":"value"}
         
     }
 }
