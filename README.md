@@ -1,12 +1,12 @@
 # load-testing-tool-api-golang
 
-Load testing API written in GoLang. API can hosted on any machine and can be used to run Load test on API endpoint.
+Load testing API including swagger written in GoLang. API can hosted on any machine and can be used to run Load test on API endpoints.
 
 
 
 ## Usage
 
-Writing the configuration file. A sample config file:
+API Json Body
 ```
 {
     "users" : 5,
@@ -18,10 +18,10 @@ Writing the configuration file. A sample config file:
         "headers": {
             "Content-Type": "application/json"
         },
-		"queryParams":{
+	"queryParams":{
             "param_key":"param_value
         },
-		"body": {"json":"value"}
+	"body": {"json":"value"}
         
     }
 }
