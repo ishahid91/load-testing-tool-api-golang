@@ -26,3 +26,13 @@ API Json Body
     }
 }
 ```
+
+API Response
+```
+{
+    "average_response_time": 156,
+    "peak_response_time": 791,
+    "total_requests": 498,
+    "error_count": 0
+}
+```
