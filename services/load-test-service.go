@@ -1,8 +1,6 @@
 package services
 
 import (
-	"bytes"
-	"encoding/json"
 	"load-test-tool/models"
 	"load-test-tool/utilities"
 	"log"
@@ -15,8 +13,8 @@ type LoadTestModel struct {
 }
 
 type ILoadTestService interface {
-	RunTest(model models.RequestModel) models.LoadTestStats
-	CalculateStats(stats models.CurrentStats)
+	RunTest(model models.RequestModel) (models.LoadTestStats, error)
+	CalculateStats(stats models.CurrentStats) error
 }
 
 func LoadTestService(httpClient utilities.IHTTPClientService) ILoadTestService {
@@ -26,12 +24,9 @@ func LoadTestService(httpClient utilities.IHTTPClientService) ILoadTestService {
 
 var _httpClient utilities.IHTTPClientService
 
-func (i *LoadTestModel) RunTest(request models.RequestModel) models.LoadTestStats {
+func (i *LoadTestModel) RunTest(request models.RequestModel) (models.LoadTestStats, error) {
 
 	log.Printf("Load Test started for, %v \n!", request.HTTPRequest.URL)
-
-
-	//i.HTTPClient.Initialise()
 
 	threadsCh := make(chan int64)
 	activeUsersCh := make(chan bool)
@@ -45,7 +40,7 @@ func (i *LoadTestModel) RunTest(request models.RequestModel) models.LoadTestStat
 		case <- timeoutCh:
 			log.Printf("Execution Completed !!")
 			close(activeUsersCh)
-			return i.Stats
+			return i.Stats, nil
 		case userActive := <- threadsCh:
 			log.Printf("User %d is started", userActive)
 			go activeUserCalls(userActive,request, activeUsersCh, loadResultCh)
@@ -56,13 +51,13 @@ func (i *LoadTestModel) RunTest(request models.RequestModel) models.LoadTestStat
 	}
 }
 
-func activeUserCalls(userCount int64,request models.RequestModel , ch chan bool , loadResultCh chan models.CurrentStats) {
+func activeUserCalls(userCount int64,request models.RequestModel , ch chan bool , loadResultCh chan models.CurrentStats) error {
 
 	for {
 		select {
 		case <- ch:
 			log.Printf("User %d is stopping", userCount)
-			return
+			return nil
 		default:
 			//log.Printf("User %d is running", userCount)
 			sendRequests(request, loadResultCh)
@@ -71,26 +66,24 @@ func activeUserCalls(userCount int64,request models.RequestModel , ch chan bool 
 }
 
 
-func createThreads(request models.RequestModel, ch chan <- int64) {
+func createThreads(request models.RequestModel, ch chan <- int64) error {
 	waitTime := request.RampUpTimeInSeconds / request.Users
 	var i int64
 	for i = 0; i < request.Users; i++ {
 		ch <- i
 		time.Sleep(time.Duration(waitTime) * time.Second)
 	}
+	return nil
 }
 
-func sendRequests(request models.RequestModel,  loadResultCh chan <- models.CurrentStats) {
+func sendRequests(request models.RequestModel,  loadResultCh chan <- models.CurrentStats) error {
 	var metric models.CurrentStats
-	payloadBytes, err := json.Marshal(request.HTTPRequest.Body)
-	if err != nil {
-		log.Print("Unable to convert payload to bytes : ", err.Error())
-	}
-	payload := bytes.NewReader(payloadBytes)
-	response, responseTimeInMillieconds, err := _httpClient.SendRequest(request.HTTPRequest.Method, request.HTTPRequest.URL, nil, request.HTTPRequest.Headers,
-		payload)
+
+	response, responseTimeInMillieconds, err := _httpClient.SendRequest(request.HTTPRequest.Method, request.HTTPRequest.URL, request.HTTPRequest.QueryParams, request.HTTPRequest.Headers,
+		request.HTTPRequest.Body)
 	if err != nil {
 		log.Print("Error while making HTTP request :", err.Error())
+		return err
 	}
 
 	metric.ResponseTime = responseTimeInMillieconds
@@ -99,15 +92,15 @@ func sendRequests(request models.RequestModel,  loadResultCh chan <- models.Curr
 	if statusOK {
 		metric.Error = false
 		loadResultCh <- metric
-		return
+		return nil
 	}
 
 	metric.Error = true
 	loadResultCh <- metric
-    return
+    return err
 }
 
-func (i *LoadTestModel)CalculateStats(stat models.CurrentStats) {
+func (i *LoadTestModel)CalculateStats(stat models.CurrentStats) error{
 	i.Stats.TotalRequests++
 	if stat.Error {
 		i.Stats.ErrorCount++
@@ -116,4 +109,5 @@ func (i *LoadTestModel)CalculateStats(stat models.CurrentStats) {
 	if stat.ResponseTime > i.Stats.MaxResponseTime {
 		i.Stats.MaxResponseTime = stat.ResponseTime
 	}
+	return nil
 }

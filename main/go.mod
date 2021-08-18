@@ -25,7 +25,7 @@ require (
 	google.golang.org/protobuf v1.27.1 // indirect
 	load-test-tool/models v0.0.0-00010101000000-000000000000
 	load-test-tool/services v0.0.0-00010101000000-000000000000
-	load-test-tool/utilities v0.0.0-00010101000000-000000000000 // indirect
+	load-test-tool/utilities v0.0.0-00010101000000-000000000000
 )
 
 replace load-test-tool/models => ../models

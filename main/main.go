@@ -34,7 +34,7 @@ func runLoadTest(c *gin.Context) {
 	}
 	// Get a greeting message and print it.
 
-	result := loadService.RunTest(request)
+	result, _ := loadService.RunTest(request)
 	c.IndentedJSON(http.StatusOK, result)
 }
 
