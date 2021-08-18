@@ -17,14 +17,14 @@ type LoadTestModel struct {
 type ILoadTestService interface {
 	RunTest(model models.RequestModel) models.LoadTestStats
 	CalculateStats(stats models.CurrentStats)
-
 }
 
-func LoadTestService() ILoadTestService {
+func LoadTestService(httpClient utilities.IHTTPClientService) ILoadTestService {
+	_httpClient = httpClient
 	return &LoadTestModel{}
 }
 
-var httpClient utilities.IHTTPClientService = utilities.HTTPClientService()
+var _httpClient utilities.IHTTPClientService
 
 func (i *LoadTestModel) RunTest(request models.RequestModel) models.LoadTestStats {
 
@@ -87,7 +87,7 @@ func sendRequests(request models.RequestModel,  loadResultCh chan <- models.Curr
 		log.Print("Unable to convert payload to bytes : ", err.Error())
 	}
 	payload := bytes.NewReader(payloadBytes)
-	response, responseTimeInMillieconds, err := httpClient.SendRequest(request.HTTPRequest.Method, request.HTTPRequest.URL, nil, request.HTTPRequest.Headers,
+	response, responseTimeInMillieconds, err := _httpClient.SendRequest(request.HTTPRequest.Method, request.HTTPRequest.URL, nil, request.HTTPRequest.Headers,
 		payload)
 	if err != nil {
 		log.Print("Error while making HTTP request :", err.Error())

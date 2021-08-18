@@ -7,11 +7,12 @@ import (
 	_ "load-test-tool/main/docs"
 	"load-test-tool/models"
 	"load-test-tool/services"
+	"load-test-tool/utilities"
 	"net/http"
 )
 
-
-var loadService services.ILoadTestService = services.LoadTestService()
+var httpClient utilities.IHTTPClientService = utilities.HTTPClientService()
+var loadService services.ILoadTestService = services.LoadTestService(httpClient)
 
 func health(c *gin.Context) {
 	c.IndentedJSON(http.StatusOK,"Health Check Ok")
