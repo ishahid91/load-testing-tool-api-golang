@@ -10,23 +10,28 @@ import (
 )
 
 
-//var HTTPClient utilities.HTTPClient
-
 type LoadTestModel struct {
-	HTTPClient utilities.HTTPClient
 	Stats models.LoadTestStats
 }
 
-type LoadTestService interface {
+type ILoadTestService interface {
 	RunTest(model models.RequestModel) models.LoadTestStats
-	calculateStats(stats models.CurrentStats)
+	CalculateStats(stats models.CurrentStats)
 
 }
+
+func LoadTestService() ILoadTestService {
+	return &LoadTestModel{}
+}
+
+var httpClient utilities.IHTTPClientService = utilities.HTTPClientService()
 
 func (i *LoadTestModel) RunTest(request models.RequestModel) models.LoadTestStats {
 
 	log.Printf("Load Test started for, %v \n!", request.HTTPRequest.URL)
-	i.HTTPClient.Initialise()
+
+
+	//i.HTTPClient.Initialise()
 
 	threadsCh := make(chan int64)
 	activeUsersCh := make(chan bool)
@@ -43,15 +48,15 @@ func (i *LoadTestModel) RunTest(request models.RequestModel) models.LoadTestStat
 			return i.Stats
 		case userActive := <- threadsCh:
 			log.Printf("User %d is started", userActive)
-			go activeUserCalls(userActive,request,i.HTTPClient, activeUsersCh, loadResultCh)
+			go activeUserCalls(userActive,request, activeUsersCh, loadResultCh)
 		case httpResult := <- loadResultCh:
 			//log.Printf("%v",httpResult)
-			i.calculateStats(httpResult)
+			i.CalculateStats(httpResult)
 		}
 	}
 }
 
-func activeUserCalls(userCount int64,request models.RequestModel, httpClient utilities.HTTPClient , ch chan bool , loadResultCh chan models.CurrentStats) {
+func activeUserCalls(userCount int64,request models.RequestModel , ch chan bool , loadResultCh chan models.CurrentStats) {
 
 	for {
 		select {
@@ -60,7 +65,7 @@ func activeUserCalls(userCount int64,request models.RequestModel, httpClient uti
 			return
 		default:
 			//log.Printf("User %d is running", userCount)
-			sendRequests(request, httpClient, loadResultCh)
+			sendRequests(request, loadResultCh)
 		}
 	}
 }
@@ -75,7 +80,7 @@ func createThreads(request models.RequestModel, ch chan <- int64) {
 	}
 }
 
-func sendRequests(request models.RequestModel, httpClient utilities.HTTPClient,  loadResultCh chan <- models.CurrentStats) {
+func sendRequests(request models.RequestModel,  loadResultCh chan <- models.CurrentStats) {
 	var metric models.CurrentStats
 	payloadBytes, err := json.Marshal(request.HTTPRequest.Body)
 	if err != nil {
@@ -102,7 +107,7 @@ func sendRequests(request models.RequestModel, httpClient utilities.HTTPClient, 
     return
 }
 
-func (i *LoadTestModel)calculateStats(stat models.CurrentStats) {
+func (i *LoadTestModel)CalculateStats(stat models.CurrentStats) {
 	i.Stats.TotalRequests++
 	if stat.Error {
 		i.Stats.ErrorCount++

@@ -11,6 +11,8 @@ import (
 )
 
 
+var loadService services.ILoadTestService = services.LoadTestService()
+
 func health(c *gin.Context) {
 	c.IndentedJSON(http.StatusOK,"Health Check Ok")
 }
@@ -31,7 +33,6 @@ func runLoadTest(c *gin.Context) {
 	}
 	// Get a greeting message and print it.
 
-	var loadService services.LoadTestModel
 	result := loadService.RunTest(request)
 	c.IndentedJSON(http.StatusOK, result)
 }

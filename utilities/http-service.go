@@ -9,16 +9,14 @@ import (
 )
 type HTTPClient struct {
 	httpClient        *http.Client
-	HTTPClientService HTTPClientService
 }
 
-type HTTPClientService interface {
-	Initialise()
-	SendRequest(string, string, map[string]string, map[string]string, io.Reader) (*http.Response, error)
+type IHTTPClientService interface {
+	SendRequest(method string, url string, queryParams map[string]string, headers map[string]string, body io.Reader) (resp *http.Response, responseTimeInMilliSeconds int64, err error)
 }
 
-func (i *HTTPClient) Initialise() {
-	i.httpClient = &http.Client{}
+func HTTPClientService() IHTTPClientService {
+	return &HTTPClient{httpClient: &http.Client{}}
 }
 
 func (i *HTTPClient) SendRequest(method string, url string, queryParams map[string]string, headers map[string]string, body io.Reader) (resp *http.Response, responseTimeInMilliSeconds int64, err error) {
